@@ -1,6 +1,8 @@
+require('dotenv').config();
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
+const secretKey = process.env.JWT_SECRET_KEY;
 
 
 // Register user
@@ -44,7 +46,7 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
-        const token = jwt.sign({ userId: user.user_id, username: user.username }, '07042000', { expiresIn: '1h' });
+        const token = jwt.sign({ userId: user.user_id, username: user.username }, secretKey, { expiresIn: '48h' });
 
         res.json({ message: 'Login successful!', token: token });
     } catch (err) {
@@ -52,3 +54,19 @@ router.post('/login', async (req, res) => {
         res.status(500).json({ message: 'Login failed!' });
     }
 });
+
+router.post('/validate-token', (req, res) => {
+    const token = req.body.token;
+
+    if (!token) {
+        return res.status(401).json({ message: 'No token provided' });
+    }
+
+    try {
+        jwt.verify(token, secretKey);
+        res.status(200).json({ message: 'Token is valid' });
+    } catch (err) {
+        res.status(401).json({ message: 'Token is invalid' });
+    }
+});
+

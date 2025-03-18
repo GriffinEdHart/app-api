@@ -49,8 +49,9 @@ router.get('/', verifyToken, async (req, res) => {
                 FROM follow
                 WHERE follower_id = ?
             )
+            OR p.user_id = ?
             ORDER BY p.timestamp DESC
-            `, [userId]);
+            `, [userId, userId]);
 
             res.json(posts);
     } catch (err) {
@@ -72,7 +73,9 @@ router.post('/', (req, res) => {
 
         try {
             const { caption } = req.body;
+            console.log("req.body: ", req.body)
             const imagePath = req.file.filename; // Store filename in DB
+            console.log("req.file: ", req.file.filename);
             const [result] = await req.pool.execute('INSERT INTO post (user_id, image_path, caption) VALUES (?, ?, ?)', [req.user.userId, imagePath, caption]);
             res.status(201).json({ message: 'Post created successfully!' });
         } catch (err) {
